@@ -160,6 +160,7 @@ def main() -> int:
         logger.log_iteration(
             IterationState(
                 iteration=i,
+                baseline="sboa",
                 selected_parent_ids=parent_ids,
                 new_candidate_ids=new_ids,
                 best_candidate_id=best.candidate_id if best else None,

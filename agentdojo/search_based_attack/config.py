@@ -57,6 +57,24 @@ class ScoringConfig(BaseModel):
     weight_critic: float = 5.0
 
 
+class PairSearchConfig(BaseModel):
+    children_per_iteration: int = 1
+
+
+class TapSearchConfig(BaseModel):
+    max_depth: int = 3
+    branching_width: int = 3
+
+
+class AutoDanSearchConfig(BaseModel):
+    population_size: int = 12
+    num_elites: int = 2
+    mutation_rate: float = 0.4
+    crossover_rate: float = 0.8
+    children_per_generation: int = 10
+    crossover_prompt_template: str | None = None
+
+
 class LoggingConfig(BaseModel):
     out_dir: str = "./runs_search_based_attack"
 
@@ -73,6 +91,9 @@ class SearchAttackConfig(BaseModel):
     mutation: MutationConfig = MutationConfig()
     critic: CriticConfig = CriticConfig()
     scoring: ScoringConfig = ScoringConfig()
+    pair: PairSearchConfig = PairSearchConfig()
+    tap: TapSearchConfig = TapSearchConfig()
+    autodan: AutoDanSearchConfig = AutoDanSearchConfig()
     logging: LoggingConfig = LoggingConfig()
     runtime: RuntimeConfig = RuntimeConfig()
 

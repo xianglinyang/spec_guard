@@ -166,12 +166,15 @@ python run_openrouter_benchmark.py \
   -ut user_task_0
 ```
 
-## 10) Built-in registered adaptive attack (`search_based_optimization`)
+## 10) Built-in registered adaptive attacks
 
-This repo now includes a registered adaptive attack that can be used directly in `run_openrouter_benchmark.py`:
+This repo now includes four registered adaptive attacks, plus one backward-compatible alias:
 
-- attack name: `search_based_optimization`
-- method: single-database iterative search with mutator LLM + critic LLM + score-based pool update
+- `pair_search`: iterative best-parent refinement
+- `tap_search`: tree/BFS expansion with depth + iteration constraints
+- `autodan_search`: population evolution with elite retention, roulette selection, and LLM crossover/mutation
+- `sboa_search`: single-database iterative search with mutator LLM + critic LLM + score-based pool update
+- `search_based_optimization`: alias to `sboa_search`
 
 Example:
 
@@ -183,7 +186,7 @@ export SBOA_MAX_ITERATIONS=5
 
 python run_openrouter_benchmark.py \
   --openrouter-model openai/gpt-4o-mini \
-  --attack search_based_optimization \
+  --attack sboa_search \
   --defense tool_filter \
   -s workspace \
   -ut user_task_0
@@ -200,3 +203,14 @@ Useful tuning env vars:
 - `SBOA_CRITIC_MODEL`
 - `SBOA_BASE_URL`
 - `SBOA_API_KEY_ENV`
+- `PAIR_CHILDREN_PER_ITER`
+- `TAP_MAX_ITERATIONS`
+- `TAP_MAX_DEPTH`
+- `TAP_BRANCHING_WIDTH`
+- `AUTODAN_MAX_ITERATIONS`
+- `AUTODAN_POPULATION_SIZE`
+- `AUTODAN_NUM_ELITES`
+- `AUTODAN_MUTATION_RATE`
+- `AUTODAN_CROSSOVER_RATE`
+- `AUTODAN_CHILDREN_PER_GEN`
+- `AUTODAN_CROSSOVER_PROMPT_TEMPLATE`

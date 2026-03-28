@@ -34,12 +34,16 @@ class CandidateRecord:
     score: ScoreBreakdown
     episode: EpisodeResult
     critic_reason: str
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
 class IterationState:
     iteration: int
+    baseline: str
     selected_parent_ids: list[str]
     new_candidate_ids: list[str]
     best_candidate_id: str | None
     best_total_score: float | None
+    depth: int | None = None
+    stop_reason: str | None = None
