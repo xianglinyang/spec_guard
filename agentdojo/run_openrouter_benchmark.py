@@ -25,6 +25,13 @@ from agentdojo.task_suite.load_suites import get_suite, get_suites
 
 from custom_registry import get_openrouter_defense, list_openrouter_defenses
 
+# Auto-register local custom attack implementations (side-effect import).
+try:
+    import search_based_attack.registered_attack  # noqa: F401
+except Exception:
+    # Keep benchmark script usable even if local attack package is unavailable.
+    pass
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run AgentDojo benchmark using OpenRouter models.")

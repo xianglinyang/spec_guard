@@ -165,3 +165,38 @@ python run_openrouter_benchmark.py \
   -s workspace \
   -ut user_task_0
 ```
+
+## 10) Built-in registered adaptive attack (`search_based_optimization`)
+
+This repo now includes a registered adaptive attack that can be used directly in `run_openrouter_benchmark.py`:
+
+- attack name: `search_based_optimization`
+- method: single-database iterative search with mutator LLM + critic LLM + score-based pool update
+
+Example:
+
+```bash
+export OPENROUTER_API_KEY='your-key'
+export SBOA_MUTATOR_MODEL='openai/gpt-4o-mini'
+export SBOA_CRITIC_MODEL='openai/gpt-4o-mini'
+export SBOA_MAX_ITERATIONS=5
+
+python run_openrouter_benchmark.py \
+  --openrouter-model openai/gpt-4o-mini \
+  --attack search_based_optimization \
+  --defense tool_filter \
+  -s workspace \
+  -ut user_task_0
+```
+
+Useful tuning env vars:
+
+- `SBOA_MAX_ITERATIONS`
+- `SBOA_CHILDREN_PER_ITER`
+- `SBOA_TOP_K`
+- `SBOA_RANDOM_K`
+- `SBOA_PARENT_SAMPLE_K`
+- `SBOA_MUTATOR_MODEL`
+- `SBOA_CRITIC_MODEL`
+- `SBOA_BASE_URL`
+- `SBOA_API_KEY_ENV`

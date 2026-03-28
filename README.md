@@ -7,6 +7,7 @@ This repository includes a runnable AgentDojo setup:
 - `agentdojo/setup_agentdojo.sh`
 - `agentdojo/run_smoke_check.sh`
 - `agentdojo/run_openrouter_benchmark.py` (for OpenRouter custom models)
+- `agentdojo/run_search_based_attack.py` (single-database search-based optimization attack)
 - `agentdojo/AGENTDOJO_TUTORIAL.md`
 
 Quick run:
@@ -131,5 +132,45 @@ python run_openrouter_benchmark.py \
 - Default logs are written to `./runs` under the current working directory.
 - To force rerun existing tasks, add `-f`.
 - To change output path, use `--logdir /path/to/logs`.
+
+### 7) Run search-based optimization attack
+
+```bash
+cd /home/xianglin/git_space/spec_guard/agentdojo
+python run_search_based_attack.py --config search_based_attack_config.yaml
+```
+
+### 8) Run registered adaptive attack through benchmark
+
+`run_openrouter_benchmark.py` now auto-registers `search_based_optimization` attack.
+
+```bash
+cd /home/xianglin/git_space/spec_guard/agentdojo
+export OPENROUTER_API_KEY='your-key'
+export SBOA_MUTATOR_MODEL='openai/gpt-4o-mini'
+export SBOA_CRITIC_MODEL='openai/gpt-4o-mini'
+export SBOA_MAX_ITERATIONS=5
+
+python run_openrouter_benchmark.py \
+  --openrouter-model openai/gpt-4o-mini \
+  --attack search_based_optimization \
+  --defense tool_filter \
+  -s workspace \
+  -ut user_task_0
+```
+
+### 9) Script launcher (all hyperparameters in one place)
+
+Use:
+
+`agentdojo/scripts/run_search_based_optimization_attack.sh`
+
+Example:
+
+```bash
+cd /home/xianglin/git_space/spec_guard/agentdojo
+export OPENROUTER_API_KEY='your-key'
+SBOA_MAX_ITERATIONS=10 SBOA_CHILDREN_PER_ITER=12 ./scripts/run_search_based_optimization_attack.sh
+```
 
 For full project organization and additional details, read `agentdojo/AGENTDOJO_TUTORIAL.md`.
