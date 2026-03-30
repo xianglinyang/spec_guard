@@ -139,6 +139,8 @@ class _BaseRegisteredSearchAttack(BaseAttack):
         else:
             best = engine.run_sboa(seed_trigger, self.sboa_cfg)
 
+        pipeline_name = getattr(self.target_pipeline, "name", None)
+        defense_name = self._extract_defense_name(pipeline_name)
         self.run_logger.write_summary(
             {
                 "attack_name": self.name,
@@ -151,9 +153,50 @@ class _BaseRegisteredSearchAttack(BaseAttack):
                 "success": best.episode.success,
                 "utility": best.episode.utility,
                 "log_dir": str(self.run_logger.run_dir),
+                "defense_name": defense_name,
+                "pipeline_name": pipeline_name,
+                "defense_config": self._collect_defense_config_snapshot(defense_name),
             }
         )
         return best.text_trigger
+
+    @staticmethod
+    def _extract_defense_name(pipeline_name: str | None) -> str | None:
+        if not pipeline_name:
+            return None
+        # format is commonly: <model_alias>--openrouter--<model>--<defense>
+        parts = str(pipeline_name).split("--")
+        if len(parts) < 2:
+            return None
+        candidate = parts[-1].strip()
+        return candidate or None
+
+    @staticmethod
+    def _collect_defense_config_snapshot(defense_name: str | None) -> dict[str, object]:
+        if defense_name != "speculative_smoothing":
+            return {}
+
+        def _env(name: str, default: str = "") -> str:
+            return os.getenv(name, default)
+
+        return {
+            "name": "speculative_smoothing",
+            "draft_backend": _env("SPEC_SMOOTHING_DRAFT_BACKEND"),
+            "draft_model": _env("SPEC_SMOOTHING_DRAFT_MODEL"),
+            "draft_use_main_client": _env("SPEC_SMOOTHING_DRAFT_USE_MAIN_CLIENT"),
+            "draft_base_url": _env("SPEC_SMOOTHING_DRAFT_BASE_URL"),
+            "verifier_backend": _env("SPEC_SMOOTHING_VERIFIER_BACKEND"),
+            "verifier_model": _env("SPEC_SMOOTHING_VERIFIER_MODEL"),
+            "verifier_tree_model_name_or_path": _env("SPEC_SMOOTHING_VERIFIER_TREE_MODEL_NAME_OR_PATH"),
+            "verifier_tree_device": _env("SPEC_SMOOTHING_VERIFIER_TREE_DEVICE"),
+            "verifier_tree_dtype": _env("SPEC_SMOOTHING_VERIFIER_TREE_DTYPE"),
+            "top_k_lenses": _env("SPEC_SMOOTHING_TOP_K_LENSES"),
+            "branches_per_lens": _env("SPEC_SMOOTHING_BRANCHES_PER_LENS"),
+            "disagreement_weight": _env("SPEC_SMOOTHING_DISAGREEMENT_WEIGHT"),
+            "block_threshold": _env("SPEC_SMOOTHING_BLOCK_THRESHOLD"),
+            "escalate_threshold": _env("SPEC_SMOOTHING_ESCALATE_THRESHOLD"),
+            "seed": _env("SPEC_SMOOTHING_SEED"),
+        }
 
     def attack(self, user_task: BaseUserTask, injection_task: BaseInjectionTask) -> dict[str, str]:
         locator = UniformTriggerLocator(self.task_suite, self.target_pipeline)
