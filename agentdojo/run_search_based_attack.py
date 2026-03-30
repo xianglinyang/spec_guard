@@ -19,6 +19,7 @@ from search_based_attack.pipeline_factory import build_pipeline
 from search_based_attack.pool import CandidatePool
 from search_based_attack.scorer import compute_score
 from search_based_attack.schemas import CandidateRecord, IterationState
+from yaml_injection_patch import apply_agentdojo_yaml_injection_patch
 
 
 def parse_args() -> argparse.Namespace:
@@ -69,6 +70,7 @@ def _evaluate_and_add_candidate(
 
 def main() -> int:
     args = parse_args()
+    apply_agentdojo_yaml_injection_patch()
     cfg = load_config(args.config)
 
     load_dotenv(".env")

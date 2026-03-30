@@ -24,12 +24,20 @@ from agentdojo.logging import OutputLogger
 from agentdojo.task_suite.load_suites import get_suite, get_suites
 
 from custom_registry import get_openrouter_defense, list_openrouter_defenses
+from yaml_injection_patch import apply_agentdojo_yaml_injection_patch
 
 # Auto-register local custom attack implementations (side-effect import).
 try:
     import search_based_attack.registered_attack  # noqa: F401
 except Exception:
     # Keep benchmark script usable even if local attack package is unavailable.
+    pass
+
+# Auto-register local custom defense implementations (side-effect import).
+try:
+    import speculative_smoothing.runtime.defense_factory  # noqa: F401
+except Exception:
+    # Keep benchmark script usable even if local defense package is unavailable.
     pass
 
 
@@ -201,6 +209,7 @@ def show_results(suite_name: str, results: SuiteResults, show_security_results: 
 
 def main() -> int:
     args = parse_args()
+    apply_agentdojo_yaml_injection_patch()
 
     load_dotenv(".env")
     for module in args.module_to_load:
