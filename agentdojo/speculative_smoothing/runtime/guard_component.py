@@ -58,6 +58,9 @@ class SpeculativeSmoothingGuardElement(BasePipelineElement):
         if self.config.use_fresh_seed:
             # Mask to signed int64 range (OpenAI API seed upper bound = 2^63-1).
             invocation_seed = int.from_bytes(os.urandom(8), "big") & 0x7FFFFFFFFFFFFFFF
+            # Some OpenAI-compatible providers (e.g., certain OpenRouter routes)
+            # enforce a much smaller seed upper bound.
+            invocation_seed = invocation_seed % 10_000_000_000
         else:
             invocation_seed = self.config.seed
 
