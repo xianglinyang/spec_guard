@@ -101,6 +101,7 @@ def main() -> int:
 
         task_records = parse_task_jsons(logdir) if status == 0 else []
         utility_vals: list[float] = []
+        utility_under_attack_vals: list[float] = []
         security_vals: list[float] = []
         duration_vals: list[float] = []
 
@@ -120,10 +121,13 @@ def main() -> int:
                         utility_vals.append(1.0 if utility else 0.0)
             else:
                 if attack_type is not None and inj_id is not None:
+                    if isinstance(utility, bool):
+                        utility_under_attack_vals.append(1.0 if utility else 0.0)
                     if isinstance(security, bool):
                         security_vals.append(1.0 if security else 0.0)
 
         utility_mean = safe_mean(utility_vals)
+        utility_under_attack_mean = safe_mean(utility_under_attack_vals)
         security_mean = safe_mean(security_vals)
         asr = (1.0 - security_mean) if security_mean is not None else None
         duration_mean = safe_mean(duration_vals)
@@ -136,6 +140,7 @@ def main() -> int:
             "attack_mode": attack_mode,
             "status": str(status),
             "utility_mean": fmt(utility_mean),
+            "utility_under_attack_mean": fmt(utility_under_attack_mean),
             "security_mean": fmt(security_mean),
             "asr": fmt(asr),
             "duration_mean_sec": fmt(duration_mean),
@@ -179,6 +184,7 @@ def main() -> int:
                 "attack_mode": attack_mode,
                 "n_runs": str(len(items)),
                 "utility_mean": fmt(_m("utility_mean")),
+                "utility_under_attack_mean": fmt(_m("utility_under_attack_mean")),
                 "security_mean": fmt(_m("security_mean")),
                 "asr_mean": fmt(_m("asr")),
                 "duration_mean_sec": fmt(_m("duration_mean_sec")),
@@ -201,16 +207,16 @@ def main() -> int:
     md_path = run_root / "prelim_tables.md"
     with md_path.open("w") as f:
         f.write("# Preliminary Tables\n\n")
-        f.write("## Utility (attack=none)\n\n")
-        f.write("| defense | utility_mean |\n|---|---:|\n")
+        f.write("## Benign Utility (attack=none)\n\n")
+        f.write("| defense | benign_utility |\n|---|---:|\n")
         for r in summary_rows:
             if r["attack_mode"] == "none":
                 f.write(f"| {r['defense']} | {r['utility_mean']} |\n")
-        f.write("\n## Security / ASR (attack=sboa)\n\n")
-        f.write("| defense | security_mean | asr_mean |\n|---|---:|---:|\n")
+        f.write("\n## Under Attack (attack=sboa)\n\n")
+        f.write("| defense | utility_under_attack | targeted_asr |\n|---|---:|---:|\n")
         for r in summary_rows:
             if r["attack_mode"] == "sboa":
-                f.write(f"| {r['defense']} | {r['security_mean']} | {r['asr_mean']} |\n")
+                f.write(f"| {r['defense']} | {r['utility_under_attack_mean']} | {r['asr_mean']} |\n")
         f.write("\n## Efficiency (mean)\n\n")
         f.write("| defense | attack_mode | duration_mean_sec | api_calls_total_mean | gpu_util_avg_mean | gpu_mem_max_mib_mean |\n")
         f.write("|---|---|---:|---:|---:|---:|\n")

@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+if [ -n "${SCRIPT_DIR:-}" ]; then
+  . "$SCRIPT_DIR/hparams/attack_common.sh"
+else
+  . "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/attack_common.sh"
+fi
+
+export ATTACK_NAME="${ATTACK_NAME:-autodan_search}"
+export AUTODAN_MAX_ITERATIONS="${AUTODAN_MAX_ITERATIONS:-5}"
+export AUTODAN_POPULATION_SIZE="${AUTODAN_POPULATION_SIZE:-12}"
+export AUTODAN_NUM_ELITES="${AUTODAN_NUM_ELITES:-2}"
+export AUTODAN_MUTATION_RATE="${AUTODAN_MUTATION_RATE:-0.4}"
+export AUTODAN_CROSSOVER_RATE="${AUTODAN_CROSSOVER_RATE:-0.8}"
+export AUTODAN_CHILDREN_PER_GEN="${AUTODAN_CHILDREN_PER_GEN:-10}"
+export AUTODAN_CROSSOVER_PROMPT_TEMPLATE="${AUTODAN_CROSSOVER_PROMPT_TEMPLATE:-}"
+export SBOA_RUN_NAME="${SBOA_RUN_NAME:-autodan_search}"

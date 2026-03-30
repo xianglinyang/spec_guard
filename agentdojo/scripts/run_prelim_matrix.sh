@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 PROJECT_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
@@ -9,17 +9,26 @@ cd "$PROJECT_DIR"
 PRELIM_SUITE="${PRELIM_SUITE:-workspace}"
 PRELIM_BENCHMARK_VERSION="${PRELIM_BENCHMARK_VERSION:-v1.2.2}"
 PRELIM_SEEDS="${PRELIM_SEEDS:-42,43,44}"
-PRELIM_DEFENSES="${PRELIM_DEFENSES:-none,tool_filter,transformers_pi_detector,repeat_user_prompt,spotlighting_with_delimiting,spec_smoothing}"
+PRELIM_DEFENSES="${PRELIM_DEFENSES:-none,tool_filter,transformers_pi_detector,spotlighting_with_delimiting,spec_smoothing}"
 PRELIM_ATTACK_MODES="${PRELIM_ATTACK_MODES:-none,sboa}"
-PRELIM_USER_TASKS="${PRELIM_USER_TASKS:-user_task_0,user_task_1,user_task_2,user_task_3,user_task_4,user_task_5,user_task_6,user_task_7,user_task_8,user_task_9}"
+PRELIM_USER_TASKS="${PRELIM_USER_TASKS:-user_task_0}"
 PRELIM_OUT_DIR="${PRELIM_OUT_DIR:-./runs_prelim}"
 PRELIM_ID="${PRELIM_ID:-$(date +%Y%m%d_%H%M%S)}"
 PRELIM_FORCE_RERUN="${PRELIM_FORCE_RERUN:-1}"
 
 RUN_ROOT="$PRELIM_OUT_DIR/$PRELIM_ID"
 MANIFEST="$RUN_ROOT/manifest.tsv"
+MASTER_LOG="$RUN_ROOT/prelim_matrix.log"
 mkdir -p "$RUN_ROOT"
 printf "seed\tdefense\tattack_mode\tlogdir\trun_log\tgpu_log\tstatus\n" > "$MANIFEST"
+echo "[info] run_root=$RUN_ROOT" | tee -a "$MASTER_LOG"
+echo "[info] suite=$PRELIM_SUITE benchmark_version=$PRELIM_BENCHMARK_VERSION" | tee -a "$MASTER_LOG"
+echo "[info] seeds=$PRELIM_SEEDS defenses=$PRELIM_DEFENSES attack_modes=$PRELIM_ATTACK_MODES user_tasks=$PRELIM_USER_TASKS" | tee -a "$MASTER_LOG"
+
+if [ -z "$PRELIM_SEEDS" ] || [ -z "$PRELIM_DEFENSES" ] || [ -z "$PRELIM_ATTACK_MODES" ] || [ -z "$PRELIM_USER_TASKS" ]; then
+  echo "[error] empty prelim dimension detected. Please set non-empty PRELIM_SEEDS/PRELIM_DEFENSES/PRELIM_ATTACK_MODES/PRELIM_USER_TASKS." | tee -a "$MASTER_LOG"
+  exit 1
+fi
 
 start_gpu_monitor() {
   gpu_log_file="$1"
@@ -29,7 +38,7 @@ start_gpu_monitor() {
         nvidia-smi --query-gpu=timestamp,utilization.gpu,memory.used --format=csv,noheader,nounits >> "$gpu_log_file" 2>/dev/null || true
         sleep 1
       done
-    ) &
+    ) >/dev/null 2>&1 &
     echo "$!"
   else
     echo ""
@@ -49,6 +58,7 @@ for seed in $PRELIM_SEEDS; do
 
       gpu_pid="$(start_gpu_monitor "$gpu_log")"
 
+      echo "[running] seed=$seed defense=$defense attack_mode=$attack_mode → $run_log" | tee -a "$MASTER_LOG"
       set +e
       ATTACK_PROFILE="$attack_mode" \
       DEFENSE_PROFILE="$defense" \
@@ -60,8 +70,8 @@ for seed in $PRELIM_SEEDS; do
       FORCE_RERUN="$PRELIM_FORCE_RERUN" \
       SBOA_SEED="$seed" \
       SPEC_SMOOTHING_SEED="$seed" \
-      "$SCRIPT_DIR/run_experiment.sh" >"$run_log" 2>&1
-      status=$?
+      "$SCRIPT_DIR/run_experiment.sh" 2>&1 | tee "$run_log"
+      status=${PIPESTATUS[0]}
       set -e
 
       if [ -n "$gpu_pid" ]; then
@@ -72,14 +82,14 @@ for seed in $PRELIM_SEEDS; do
         "$seed" "$defense" "$attack_mode" "$combo_logdir" "$run_log" "$gpu_log" "$status" >> "$MANIFEST"
 
       if [ "$status" -ne 0 ]; then
-        echo "[warn] failed seed=$seed defense=$defense attack_mode=$attack_mode (see $run_log)"
+        echo "[warn] failed seed=$seed defense=$defense attack_mode=$attack_mode (see $run_log)" | tee -a "$MASTER_LOG"
       else
-        echo "[ok] seed=$seed defense=$defense attack_mode=$attack_mode"
+        echo "[ok] seed=$seed defense=$defense attack_mode=$attack_mode" | tee -a "$MASTER_LOG"
       fi
     done
   done
 done
 IFS=$OLD_IFS
 
-echo "[info] prelim matrix completed: $RUN_ROOT"
-echo "[info] manifest: $MANIFEST"
+echo "[info] prelim matrix completed: $RUN_ROOT" | tee -a "$MASTER_LOG"
+echo "[info] manifest: $MANIFEST" | tee -a "$MASTER_LOG"

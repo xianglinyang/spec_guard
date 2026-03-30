@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 # Unified entrypoint for selecting attack + defense hyperparameter profiles.
 #
@@ -49,7 +49,7 @@ fi
 
 # Preflight: local draft endpoint health check when draft uses independent local client.
 if [ "${DEFENSE_PROFILE}" = "spec_smoothing" ] && [ "${SPEC_SMOOTHING_DRAFT_USE_MAIN_CLIENT:-1}" = "0" ]; then
-  if ! python - "$SPEC_SMOOTHING_DRAFT_BASE_URL" <<'PY'
+  if ! python3 - "$SPEC_SMOOTHING_DRAFT_BASE_URL" <<'PY'
 import sys
 import urllib.request
 
@@ -78,7 +78,7 @@ fi
 
 cd "$PROJECT_DIR"
 
-CMD="python run_openrouter_benchmark.py \
+CMD="python3 run_openrouter_benchmark.py \
   --openrouter-model $OPENROUTER_MODEL \
   --base-url $BASE_URL \
   --api-key-env $API_KEY_ENV \
