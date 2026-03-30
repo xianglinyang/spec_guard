@@ -213,3 +213,6 @@ agentdojo/runs*
 # tests
 
 agentdojo/tests/*
+
+*.pdf
+*.tex
