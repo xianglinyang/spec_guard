@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -eu
+
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+exec "$SCRIPT_DIR/run_experiment.sh" "$@"
+
+# exec "ATTACK_PROFILE=sboa DEFENSE_PROFILE=spec_smoothing $SCRIPT_DIR/run_experiment.sh"
+# exec "ATTACK_PROFILE=tap  DEFENSE_PROFILE=none           $SCRIPT_DIR/run_experiment.sh"
+# exec "ATTACK_PROFILE=none DEFENSE_PROFILE=tool_filter    $SCRIPT_DIR/run_experiment.sh"
